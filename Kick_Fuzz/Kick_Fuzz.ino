@@ -1,4 +1,4 @@
-// Lo-Fi kick drum and fuzz - pin PD0 audio PWM output //
+// Lo-Fi kick drum and fuzz distortion - pin PD0 audio PWM output //
 
 #include <HardwareTimer.h>
 
