@@ -49,7 +49,7 @@ int Synth::calculate() {
 
   int x = (int)(wave * k) >> 8;
 
-  float y = x * gain;            
+  int y = x * gain;            
   if(y > clip) y = clip;
   else if(y < -clip) y = -clip;
 
