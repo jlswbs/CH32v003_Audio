@@ -6,7 +6,7 @@ HardwareTimer Timer(TIM2);
 
 #define SAMPLE_RATE 22050
 #define SIZE        128
-#define OFFSET      8
+#define OFFSET      16
 #define BPM         120
 
   int out = 0;
@@ -45,7 +45,7 @@ void timerHandler(void) {
     last = curr;
 
     bp += (out - (bp>>4) - lp) / bound;
-    lp += clip(bp, 60);
+    lp += clip(bp, 15);
 
 	  TIM1->CH1CVR = 128 + ((lp+bp) >> 7);
 
