@@ -26,7 +26,7 @@ void timerHandler(void) {
   float ny = y;
   float nz = z;
     
-  x = nx + dt * (-a * nx - powf(ny, 2.0f) - powf(nz, 2.0f) + a * f);
+  x = nx + dt * (-a * nx - (ny * ny) - (nz * nz) + a * f);
   y = ny + dt * (-ny + nx * ny - b * nx * nz + g);
   z = nz + dt * (-nz + b * nx * ny + nx * nz);
 
