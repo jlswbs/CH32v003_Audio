@@ -1,4 +1,4 @@
-// Techno-Break drum samples with clip distortion and samplerate tune - pin PD0 audio PWM output //
+// Drum samples with clip distortion and samplerate tune - pin PD0 audio PWM output //
 
 #include <HardwareTimer.h>
 #include "BD.h"

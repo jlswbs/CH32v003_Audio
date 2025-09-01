@@ -1,4 +1,4 @@
-// Techno-Glitch drum samples with grain effect and samplerate tune - pin PD0 audio PWM output //
+// Drum samples with grain effect and samplerate tune - pin PD0 audio PWM output //
 
 #include <HardwareTimer.h>
 #include "BD.h"
