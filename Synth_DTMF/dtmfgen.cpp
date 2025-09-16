@@ -1,0 +1,194 @@
+/* Copyright 2019 Dilshan R Jayakody.
+ * A-D support added 2025 David Pye <davidmpye@gmail.com>
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+#include "Arduino.h"
+#include "dtmfgen.h"
+
+#define ROW_697 14
+#define ROW_770 15
+#define ROW_852 17
+#define ROW_941 19
+
+#define COL_1209 24
+#define COL_1336 27
+#define COL_1477 30
+#define COL_1633 33
+
+#define WAVE_TABLE_SIZE 200
+
+static DTMFGenerator *generatorInstance = NULL;
+
+bool DTMFGenerator::trig = false;
+
+unsigned char DTMFGenerator::dtmfRowPos = 0;
+unsigned char DTMFGenerator::dtmfColPos = 0;
+
+unsigned char DTMFGenerator::rowOffset = 0;
+unsigned char DTMFGenerator::colOffset = 0;
+
+unsigned char waveTable[WAVE_TABLE_SIZE] = {
+    64, 66, 68, 69, 71, 73, 75, 77, 79, 80, 82, 84, 86, 88, 89,
+    91, 93, 94, 96, 97, 99, 101, 102, 103, 105, 106, 107, 109, 110, 111,
+    112, 113, 114, 115, 116, 117, 118, 119, 120, 120, 121, 121, 122, 122, 123,
+    123, 123, 123, 124, 124, 124, 124, 124, 123, 123, 123, 123, 122, 122, 121,
+    121, 120, 120, 119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 107,
+    106, 105, 103, 102, 101, 99, 97, 96, 94, 93, 91, 89, 88, 86, 84,
+    82, 80, 79, 77, 75, 73, 71, 69, 68, 66, 64, 62, 60, 58, 56,
+    54, 53, 51, 49, 47, 45, 43, 42, 40, 38, 37, 35, 33, 32, 30,
+    28, 27, 26, 24, 23, 21, 20, 19, 18, 16, 15, 14, 13, 12, 11,
+    10, 9, 9, 8, 7, 7, 6, 6, 5, 5, 4, 4, 4, 4, 4,
+    04, 4, 4, 4, 4, 4, 5, 5, 6, 6, 7, 7, 8, 9, 9,
+    10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 23, 24, 26, 27,
+    28, 30, 32, 33, 35, 37, 38, 40, 42, 43, 45, 47, 49, 51, 53,
+    54, 56, 58, 60, 62};
+
+DTMFGenerator::DTMFGenerator()
+{
+  // Update global object with current class instance.
+  generatorInstance = this;
+
+  // Setup global variables with initial values.
+  dtmfRowPos = 0;
+  dtmfColPos = 0;
+}
+
+void DTMFGenerator::generate(char key, unsigned long duration)
+{
+
+  unsigned long timerCycle = 0;
+  // This library supports valid DTMF characters (A-D, 0-9, *, #)
+  // Distinguish the low-frequency and high-frequency components of the DTMF waveform.
+  switch (key)
+  {
+  case '1':
+    rowOffset = ROW_697;
+    colOffset = COL_1209;
+    break;
+  case '2':
+    rowOffset = ROW_697;
+    colOffset = COL_1336;
+    break;
+  case '3':
+    rowOffset = ROW_697;
+    colOffset = COL_1477;
+    break;
+  case '4':
+    rowOffset = ROW_770;
+    colOffset = COL_1209;
+    break;
+  case '5':
+    rowOffset = ROW_770;
+    colOffset = COL_1336;
+    break;
+  case '6':
+    rowOffset = ROW_770;
+    colOffset = COL_1477;
+    break;
+  case '7':
+    rowOffset = ROW_852;
+    colOffset = COL_1209;
+    break;
+  case '8':
+    rowOffset = ROW_852;
+    colOffset = COL_1336;
+    break;
+  case '9':
+    rowOffset = ROW_852;
+    colOffset = COL_1477;
+    break;
+  case '*':
+    rowOffset = ROW_941;
+    colOffset = COL_1209;
+    break;
+  case '0':
+    rowOffset = ROW_941;
+    colOffset = COL_1336;
+    break;
+  case '#':
+    rowOffset = ROW_941;
+    colOffset = COL_1477;
+    break;
+  case 'A':
+  case 'a':
+    rowOffset = ROW_697;
+    colOffset = COL_1633;
+    break;
+  case 'B':
+  case 'b':
+    rowOffset = ROW_770;
+    colOffset = COL_1633;
+    break;
+  case 'C':
+  case 'c':
+    rowOffset = ROW_852;
+    colOffset = COL_1633;
+    break;
+  case 'D':
+  case 'd':
+    rowOffset = ROW_941;
+    colOffset = COL_1633;
+    break;
+  default:
+    // Unsupported character
+    return;
+  }
+
+  // Start waveform from VCC/2.
+  dtmfRowPos = 0;
+  dtmfColPos = 0;
+
+  // Wait for specified duration.
+  while (timerCycle < duration)
+  {
+    timerCycle++;
+    delay(1);
+    trig = true;
+  }
+  
+  trig = false;
+
+}
+
+int DTMFGenerator::waveGenerator()
+{
+
+  if(trig == true) {
+
+  dtmfRowPos += rowOffset;
+  dtmfColPos += colOffset;
+
+  // Check for end of low-frequency wave cycle.
+  if (dtmfRowPos >= WAVE_TABLE_SIZE)
+  {
+    dtmfRowPos -= WAVE_TABLE_SIZE;
+  }
+
+  // Check for end of high-frequency wave cycle.
+  if (dtmfColPos >= WAVE_TABLE_SIZE)
+  {
+    dtmfColPos -= WAVE_TABLE_SIZE;
+  }
+
+  } else return waveTable[0] + waveTable[0];
+  
+  return waveTable[dtmfRowPos] + waveTable[dtmfColPos];
+
+}
