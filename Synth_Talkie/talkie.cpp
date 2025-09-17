@@ -5,8 +5,6 @@
 #include "Arduino.h"
 #include "talkie.h"
 
-#define FS 8000 // Speech engine sample rate
-
 uint8_t synthPeriod;
 uint16_t synthEnergy;
 int16_t synthK1,synthK2;
@@ -58,7 +56,7 @@ uint8_t Talkie::getBits(uint8_t bits) {
 	}
 	return value;
 }
-void Talkie::say(uint8_t* addr) {
+void Talkie::say(uint8_t* addr, uint8_t speed) {
 
 	uint8_t energy;
 
@@ -107,7 +105,7 @@ void Talkie::say(uint8_t* addr) {
 				}
 			}
 		}
-		delay(25);
+		delay(speed);
 	} while (energy != 0xf);
 
 }

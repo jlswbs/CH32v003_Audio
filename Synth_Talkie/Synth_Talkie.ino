@@ -49,7 +49,7 @@ void setup() {
 
 void loop() {
 
-	voice.say(DANGER);
+	voice.say(DANGER, 25);
    
   int tempo = 60000 / BPM;
   delay(tempo / 2);

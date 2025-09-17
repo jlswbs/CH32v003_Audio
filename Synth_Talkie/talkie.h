@@ -10,7 +10,7 @@
 class Talkie
 {
 	public:
-		void say(uint8_t* address);
+		void say(uint8_t* address, uint8_t speed);
 		int compute();
 		uint8_t* ptrAddr;
 		uint8_t ptrBit;
